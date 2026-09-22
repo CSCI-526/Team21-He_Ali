@@ -8,6 +8,9 @@ public sealed class PlayerFuel : MonoBehaviour
 
     [SerializeField, Min(0.01f)]
     private float maximumFuel = 100f;
+    
+    [SerializeField, Min(0f)]
+    private float fuelDrainPerSecond = 2f;
 
     public float CurrentFuel { get; private set; }
     public float MaximumFuel => maximumFuel;
@@ -20,6 +23,13 @@ public sealed class PlayerFuel : MonoBehaviour
         CurrentFuel = Mathf.Clamp(startingFuel, 0f, maximumFuel);
     }
 
+    private void Update()
+    {
+        if (CurrentFuel > 0f)
+        {
+            CurrentFuel = Mathf.Max(0f, CurrentFuel - fuelDrainPerSecond * Time.deltaTime);
+        }
+    }
     public void AddFuel(float amount)
     {
         if (amount <= 0f)
