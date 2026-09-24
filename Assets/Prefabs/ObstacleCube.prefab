@@ -125,3 +125,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3c8daca1f8b6241f3806db3682a6488d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Obstacle
+  impactVfx: {fileID: 8926484042661614526, guid: 353b3b9ea38143808b849286f55fd762, type: 3}

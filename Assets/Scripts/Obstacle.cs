@@ -3,6 +3,8 @@ using UnityEngine.VFX;
 
 public class Obstacle : MonoBehaviour
 {
+    [SerializeField] private VisualEffectAsset impactVfx;
+
     private bool hasSlowedPlayer;
 
     private void OnTriggerEnter(Collider other)
@@ -13,7 +15,10 @@ public class Obstacle : MonoBehaviour
         }
 
         hasSlowedPlayer = true;
-        ObstacleImpactVFX.Spawn(other.ClosestPoint(transform.position));
+        ObstacleImpactVFX.Spawn(
+            other.ClosestPoint(transform.position),
+            impactVfx
+        );
 
         PoliceMovement policeMovement =
             FindFirstObjectByType<PoliceMovement>();
@@ -40,18 +45,10 @@ public class Obstacle : MonoBehaviour
 
 public static class ObstacleImpactVFX
 {
-    private const string ResourceName = "ObstacleImpactSparks";
-
-    private static VisualEffectAsset impactAsset;
     private static bool reportedMissingAsset;
 
-    public static void Spawn(Vector3 position)
+    public static void Spawn(Vector3 position, VisualEffectAsset impactAsset)
     {
-        if (impactAsset == null)
-        {
-            impactAsset = Resources.Load<VisualEffectAsset>(ResourceName);
-        }
-
         if (impactAsset == null)
         {
             if (!reportedMissingAsset)
