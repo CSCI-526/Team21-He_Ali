@@ -1,9 +1,21 @@
+
 using UnityEngine;
 
 public class PoliceTarget : MonoBehaviour
 {
-    public void DestroyPolice()
+    private PoliceMovement policeMovement;
+
+    private void Awake()
     {
-        Destroy(gameObject);
+        policeMovement =
+            GetComponentInParent<PoliceMovement>();
+    }
+
+    public void HitPolice()
+    {
+        if (policeMovement != null)
+        {
+            policeMovement.ApplyAttackSlowdown();
+        }
     }
 }

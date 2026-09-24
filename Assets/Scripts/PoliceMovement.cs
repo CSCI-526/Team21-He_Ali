@@ -12,11 +12,12 @@ public class PoliceMovement : MonoBehaviour
     [SerializeField] private float horizontalFollowSpeed = 4f;
     [SerializeField] private float horizontalDelay = 0.4f;
 
-    [SerializeField] private float speedIncreaseInterval = 30f;
+    [SerializeField] private float speedIncreaseInterval = 20f;
     [SerializeField] private float speedIncreasePercent = 1f;
 
-    [SerializeField] private float attackSlowPercent = 10f;
-    [SerializeField] private float attackSlowDuration = 3f;
+    [SerializeField] private float slowSpeedBelowPlayer = 0.4f;
+    [SerializeField] private float slowTimePerHit = 5f;
+    [SerializeField] private int maxSlowdownHits = 3;
 
     private Rigidbody policeRigidbody;
 
@@ -25,6 +26,8 @@ public class PoliceMovement : MonoBehaviour
     private float accelerationTimer;
     private float slowdownTimer;
     private float delayedPlayerX;
+
+    private int slowdownHits;
 
     private readonly Queue<PlayerXSample> playerXHistory =
         new Queue<PlayerXSample>();
@@ -44,6 +47,7 @@ public class PoliceMovement : MonoBehaviour
     private void Awake()
     {
         policeRigidbody = GetComponent<Rigidbody>();
+
         scheduledPoliceSpeed = basePoliceSpeed;
         currentPoliceSpeed = basePoliceSpeed;
 
@@ -72,6 +76,7 @@ public class PoliceMovement : MonoBehaviour
         if (accelerationTimer >= speedIncreaseInterval)
         {
             accelerationTimer = 0f;
+
             scheduledPoliceSpeed *=
                 1f + speedIncreasePercent / 100f;
         }
@@ -79,9 +84,18 @@ public class PoliceMovement : MonoBehaviour
         if (slowdownTimer > 0f)
         {
             slowdownTimer -= Time.fixedDeltaTime;
-            currentPoliceSpeed =
-                scheduledPoliceSpeed *
-                (1f - attackSlowPercent / 100f);
+
+            currentPoliceSpeed = Mathf.Max(
+                0f,
+                playerForwardSpeed - slowSpeedBelowPlayer
+            );
+
+            if (slowdownTimer <= 0f)
+            {
+                slowdownTimer = 0f;
+                slowdownHits = 0;
+                currentPoliceSpeed = scheduledPoliceSpeed;
+            }
         }
         else
         {
@@ -91,7 +105,6 @@ public class PoliceMovement : MonoBehaviour
 
     private void UpdatePlayerHistory()
     {
-        // Store the player's previous X positions.
         playerXHistory.Enqueue(
             new PlayerXSample(
                 Time.fixedTime,
@@ -120,7 +133,6 @@ public class PoliceMovement : MonoBehaviour
             horizontalFollowSpeed * Time.fixedDeltaTime
         );
 
-        // Move using the speed difference.
         float relativeSpeed =
             currentPoliceSpeed - playerForwardSpeed;
 
@@ -139,6 +151,18 @@ public class PoliceMovement : MonoBehaviour
 
     public void ApplyAttackSlowdown()
     {
-        slowdownTimer = attackSlowDuration;
+        if (slowdownTimer <= 0f)
+        {
+            slowdownTimer = 0f;
+            slowdownHits = 0;
+        }
+
+        if (slowdownHits >= maxSlowdownHits)
+        {
+            return;
+        }
+
+        slowdownHits++;
+        slowdownTimer += slowTimePerHit;
     }
 }

@@ -721,7 +721,7 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
@@ -828,10 +828,11 @@ MonoBehaviour:
   basePoliceSpeed: 5
   horizontalFollowSpeed: 4
   horizontalDelay: 0.4
-  speedIncreaseInterval: 30
+  speedIncreaseInterval: 15
   speedIncreasePercent: 1
-  attackSlowPercent: 10
-  attackSlowDuration: 3
+  slowSpeedBelowPlayer: 0.4
+  slowTimePerHit: 5
+  maxSlowdownHits: 3
 --- !u!54 &402564168
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -855,7 +856,7 @@ Rigidbody:
   m_ImplicitCom: 1
   m_ImplicitTensor: 1
   m_UseGravity: 0
-  m_IsKinematic: 0
+  m_IsKinematic: 1
   m_Interpolate: 1
   m_Constraints: 0
   m_CollisionDetection: 1
@@ -2709,7 +2710,9 @@ MonoBehaviour:
   gameDuration: 90
   finishLineShowTime: 10
   finishDuration: 3
+  catchDistance: 2
   player: {fileID: 1473884239}
+  police: {fileID: 402564165}
   finishLine: {fileID: 900000001}
   finishPoint: {fileID: 148682173}
 --- !u!1001 &1768149022
