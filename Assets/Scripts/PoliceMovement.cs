@@ -19,12 +19,16 @@ public class PoliceMovement : MonoBehaviour
     [SerializeField] private float slowTimePerHit = 5f;
     [SerializeField] private int maxSlowdownHits = 3;
 
+    [SerializeField] private float obstacleSlowdownDuration = 2f;
+    [SerializeField] private float obstacleSpeedReduction = 0.25f;
+
     private Rigidbody policeRigidbody;
 
     private float scheduledPoliceSpeed;
     private float currentPoliceSpeed;
     private float accelerationTimer;
     private float slowdownTimer;
+    private float playerObstacleSlowdownTimer;
     private float delayedPlayerX;
 
     private int slowdownHits;
@@ -72,6 +76,14 @@ public class PoliceMovement : MonoBehaviour
     private void UpdateSpeed()
     {
         accelerationTimer += Time.fixedDeltaTime;
+
+        if (playerObstacleSlowdownTimer > 0f)
+        {
+            playerObstacleSlowdownTimer = Mathf.Max(
+                0f,
+                playerObstacleSlowdownTimer - Time.fixedDeltaTime
+            );
+        }
 
         if (accelerationTimer >= speedIncreaseInterval)
         {
@@ -133,8 +145,18 @@ public class PoliceMovement : MonoBehaviour
             horizontalFollowSpeed * Time.fixedDeltaTime
         );
 
+        float effectivePlayerForwardSpeed = playerForwardSpeed;
+
+        if (playerObstacleSlowdownTimer > 0f)
+        {
+            effectivePlayerForwardSpeed = Mathf.Max(
+                0f,
+                playerForwardSpeed - obstacleSpeedReduction
+            );
+        }
+
         float relativeSpeed =
-            currentPoliceSpeed - playerForwardSpeed;
+            currentPoliceSpeed - effectivePlayerForwardSpeed;
 
         float newZ =
             policeRigidbody.position.z +
@@ -164,5 +186,13 @@ public class PoliceMovement : MonoBehaviour
 
         slowdownHits++;
         slowdownTimer += slowTimePerHit;
+    }
+
+    public void ApplyPlayerObstacleSlowdown()
+    {
+        playerObstacleSlowdownTimer = Mathf.Max(
+            playerObstacleSlowdownTimer,
+            obstacleSlowdownDuration
+        );
     }
 }
