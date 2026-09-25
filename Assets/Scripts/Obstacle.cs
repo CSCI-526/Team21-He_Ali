@@ -1,10 +1,8 @@
 using UnityEngine;
-using UnityEngine.VFX;
+using UnityEngine.Rendering;
 
 public class Obstacle : MonoBehaviour
 {
-    [SerializeField] private VisualEffectAsset impactVfx;
-
     private bool hasSlowedPlayer;
 
     private void OnTriggerEnter(Collider other)
@@ -15,10 +13,7 @@ public class Obstacle : MonoBehaviour
         }
 
         hasSlowedPlayer = true;
-        ObstacleImpactVFX.Spawn(
-            other.ClosestPoint(transform.position),
-            impactVfx
-        );
+        ObstacleImpactVFX.Spawn(other.ClosestPoint(transform.position));
 
         PoliceMovement policeMovement =
             FindFirstObjectByType<PoliceMovement>();
@@ -39,57 +34,94 @@ public class Obstacle : MonoBehaviour
 
     public void DestroyObstacle()
     {
+        ObstacleImpactVFX.Spawn(transform.position);
         Destroy(gameObject);
     }
 }
 
 public static class ObstacleImpactVFX
 {
-    private static bool reportedMissingAsset;
-
-    public static void Spawn(Vector3 position, VisualEffectAsset impactAsset)
+    public static void Spawn(Vector3 position)
     {
-        if (impactAsset == null)
-        {
-            if (!reportedMissingAsset)
-            {
-                Debug.LogWarning("Obstacle impact VFX Graph asset could not be loaded.");
-                reportedMissingAsset = true;
-            }
-
-            return;
-        }
-
-        GameObject effectObject = new GameObject("Obstacle Impact VFX Graph");
+        GameObject effectObject = new GameObject("Obstacle Impact Particles");
         effectObject.transform.position = position + Vector3.up * 0.4f;
 
-        VisualEffect effect = effectObject.AddComponent<VisualEffect>();
-        effect.visualEffectAsset = impactAsset;
+        ParticleSystem particles = effectObject.AddComponent<ParticleSystem>();
+        particles.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+        ConfigureParticles(particles);
+        ConfigureRenderer(effectObject.GetComponent<ParticleSystemRenderer>());
 
-        ConfigureBurst(effect);
-        effect.Reinit();
-        effect.Play();
-
+        particles.Play();
+        particles.Emit(50);
         Object.Destroy(effectObject, 2f);
     }
 
-    private static void ConfigureBurst(VisualEffect effect)
+    private static void ConfigureParticles(ParticleSystem particles)
     {
-        SetVector2(effect, "Loop Duration Min/Max", new Vector2(10f, 10f));
-        SetVector2(effect, "Burst Count Min/Max", new Vector2(40f, 55f));
-        SetVector2(effect, "Lifetime Min/Max", new Vector2(0.45f, 0.9f));
-        SetVector2(effect, "Size Min/Max", new Vector2(0.08f, 0.18f));
-        SetFloat(effect, "Spawn Rate", 0f);
-        SetFloat(effect, "Sparkle Width", 0.12f);
-        SetFloat(effect, "Initial Velocity Divergence", 1.35f);
-        SetFloat(effect, "Turbulence Intensity", 0.6f);
-        SetVector3(effect, "Initial Position", Vector3.zero);
-        SetVector3(effect, "Initial Velocity", Vector3.up * 7f);
-        SetVector3(effect, "Gravity Vector", Vector3.down * 8f);
+        ParticleSystem.MainModule main = particles.main;
+        main.loop = false;
+        main.playOnAwake = false;
+        main.duration = 1f;
+        main.startLifetime = new ParticleSystem.MinMaxCurve(0.45f, 0.9f);
+        main.startSpeed = new ParticleSystem.MinMaxCurve(4f, 8f);
+        main.startSize = new ParticleSystem.MinMaxCurve(0.08f, 0.2f);
+        main.startRotation = new ParticleSystem.MinMaxCurve(0f, Mathf.PI * 2f);
+        main.gravityModifier = 1f;
+        main.simulationSpace = ParticleSystemSimulationSpace.World;
+        main.stopAction = ParticleSystemStopAction.Destroy;
 
-        Gradient orangeGradient = CreateOrangeGradient();
-        SetGradient(effect, "Sparkle Fire Gradient", orangeGradient);
-        SetGradient(effect, "Color Over Life", orangeGradient);
+        ParticleSystem.EmissionModule emission = particles.emission;
+        emission.enabled = false;
+
+        ParticleSystem.ShapeModule shape = particles.shape;
+        shape.enabled = true;
+        shape.shapeType = ParticleSystemShapeType.Sphere;
+        shape.radius = 0.25f;
+
+        ParticleSystem.ColorOverLifetimeModule color = particles.colorOverLifetime;
+        color.enabled = true;
+        color.color = new ParticleSystem.MinMaxGradient(CreateOrangeGradient());
+
+        ParticleSystem.SizeOverLifetimeModule size = particles.sizeOverLifetime;
+        size.enabled = true;
+        size.size = new ParticleSystem.MinMaxCurve(
+            1f,
+            AnimationCurve.EaseInOut(0f, 1f, 1f, 0f)
+        );
+    }
+
+    private static void ConfigureRenderer(ParticleSystemRenderer renderer)
+    {
+        renderer.renderMode = ParticleSystemRenderMode.Billboard;
+        renderer.alignment = ParticleSystemRenderSpace.View;
+        renderer.shadowCastingMode = ShadowCastingMode.Off;
+        renderer.receiveShadows = false;
+
+        Shader shader = Shader.Find("Universal Render Pipeline/Particles/Unlit");
+        if (shader == null)
+        {
+            shader = Shader.Find("Particles/Standard Unlit");
+        }
+
+        if (shader != null)
+        {
+            Material material = new Material(shader);
+            material.name = "Obstacle Impact Orange Material";
+
+            Color orange = new Color(1f, 0.35f, 0.02f, 1f);
+            if (material.HasProperty("_BaseColor"))
+            {
+                material.SetColor("_BaseColor", orange);
+            }
+
+            if (material.HasProperty("_Color"))
+            {
+                material.SetColor("_Color", orange);
+            }
+
+            renderer.material = material;
+            Object.Destroy(material, 2f);
+        }
     }
 
     private static Gradient CreateOrangeGradient()
@@ -98,10 +130,10 @@ public static class ObstacleImpactVFX
         gradient.SetKeys(
             new[]
             {
-                new GradientColorKey(new Color(1f, 1f, 0.7f) * 4f, 0f),
-                new GradientColorKey(new Color(1f, 0.45f, 0.03f) * 3f, 0.35f),
-                new GradientColorKey(new Color(1f, 0.1f, 0f) * 1.5f, 0.75f),
-                new GradientColorKey(new Color(0.35f, 0.02f, 0f), 1f)
+                new GradientColorKey(new Color(1f, 1f, 0.55f), 0f),
+                new GradientColorKey(new Color(1f, 0.4f, 0.02f), 0.35f),
+                new GradientColorKey(new Color(0.9f, 0.05f, 0f), 0.75f),
+                new GradientColorKey(new Color(0.2f, 0.01f, 0f), 1f)
             },
             new[]
             {
@@ -112,45 +144,5 @@ public static class ObstacleImpactVFX
         );
 
         return gradient;
-    }
-
-    private static void SetFloat(VisualEffect effect, string property, float value)
-    {
-        int id = Shader.PropertyToID(property);
-
-        if (effect.HasFloat(id))
-        {
-            effect.SetFloat(id, value);
-        }
-    }
-
-    private static void SetVector2(VisualEffect effect, string property, Vector2 value)
-    {
-        int id = Shader.PropertyToID(property);
-
-        if (effect.HasVector2(id))
-        {
-            effect.SetVector2(id, value);
-        }
-    }
-
-    private static void SetVector3(VisualEffect effect, string property, Vector3 value)
-    {
-        int id = Shader.PropertyToID(property);
-
-        if (effect.HasVector3(id))
-        {
-            effect.SetVector3(id, value);
-        }
-    }
-
-    private static void SetGradient(VisualEffect effect, string property, Gradient value)
-    {
-        int id = Shader.PropertyToID(property);
-
-        if (effect.HasGradient(id))
-        {
-            effect.SetGradient(id, value);
-        }
     }
 }
