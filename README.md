@@ -13,4 +13,4 @@
 5. Commit the updated project and `docs` files, then push `main` to GitHub.
 6. In the GitHub repository, open **Settings > Pages**. Under **Build and deployment**, choose **Deploy from a branch**, then select `main` and `/docs` and click **Save**.
 
-The site will be available at <https://tianyuhe11.github.io/PairProject/> after GitHub finishes deploying it.
+The site will be available at <https://csci-526.github.io/Team21-He_Ali/> after GitHub finishes deploying it.
