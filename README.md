@@ -6,7 +6,7 @@ The player must survive a 90-second drive, manage limited fuel and ammunition, a
 
 ## Play the Game
 
-- [Play the WebGL build](https://csci-526.github.io/Team21-He_Ali/)
+- [Play on GitHub](https://csci-526.github.io/Team21-He_Ali/)
 - [Play on Unity Play](https://play.unity.com/api/v1/games/game/89f21a1c-9f23-48b2-a5fe-1f46184a3b38/build/latest/frame)
 - [Watch the gameplay video](https://youtu.be/1QeiQiOD2BY)
 - [Read the descriptive document](https://docs.google.com/document/d/158VhF6BgA7K4MI-C9BUlZdGnkoFmhDPkxYktXaQlbyE/edit?usp=sharing)
@@ -59,47 +59,12 @@ The central twist is limited resource management under pursuit.
 
 Ammunition serves two competing purposes: clearing obstacles ahead and slowing the police behind. Skilled driving conserves ammunition, while shooting provides temporary safety at the cost of a scarce resource. Fuel and ammunition pickups may also require moving into more dangerous positions, creating additional risk-versus-reward decisions.
 
-## Built With
-
-- Unity
-- C#
-- Universal Render Pipeline
-- WebGL
-
 ## Team
 
 ### Khalid Ali
 
-[GitHub profile](https://github.com/Data-Driven-Motors-G80)
-
-- Refined obstacle placement and behavior
-- Created the user interface, start screen, and finish sequence
-- Implemented fuel depletion and fuel pickups
-- Implemented ammunition pickups and shooting
-- Created the moving course and course-pacing system
-- Improved player, obstacle, lighting, and impact visuals
-
 ### Tianyu He
-
-[GitHub profile](https://github.com/TianyuHe11)
-
-- Created the initial game scene
-- Implemented player movement
-- Developed police movement and chase behavior
-- Added police-catch and game-over logic
-- Implemented the police slowdown caused by backward projectiles
 
 ## Repository
 
 [CSCI-526/Team21-He_Ali](https://github.com/CSCI-526/Team21-He_Ali)
-
-## WebGL Deployment
-
-1. In Unity, open **File > Build Profiles**.
-2. Select **Web** and switch to that platform.
-3. Under **Player > Web > Publishing Settings**, set **Compression Format** to **Disabled** for GitHub Pages compatibility.
-4. Build the project into the repository's `docs` folder.
-5. If Unity creates `docs/docs`, move that nested build into the top-level `docs` folder.
-6. Confirm that `docs/.nojekyll` exists.
-7. Commit and push the updated project and `docs` directory.
-8. Configure GitHub Pages to deploy from the `main` branch and `/docs` folder.
